@@ -31,7 +31,7 @@ All changes are recorded in Studio's undo history. You can revert any AI action 
 | **Instances** | Create, rename, move, delete and clone instances |
 | **UI** | Create full UI hierarchies from specs |
 | **Properties** | Set properties, tags and attributes on any instance |
-| **Context** | Gather game hierarchy, scripts and UI structure for AI context |
+| **Exploration** | Run Luau code to explore game hierarchy, properties and any service |
 | **Undo** | Revert Metain actions without affecting manual changes |
 
 ## Security

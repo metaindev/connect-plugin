@@ -80,7 +80,7 @@ function ScriptCmds.edit_script(data: {[string]: any}): {[string]: any}
 	local target, err = Utils.requireScript(data.path)
 	if err then return err end
 
-	if not data.edits or type(data.edits) ~= "table" or #data.edits == 0 then
+	if not data.edits or typeof(data.edits) ~= "table" or #data.edits == 0 then
 		return {success = false, message = "Missing or empty edits array"}
 	end
 
@@ -91,7 +91,7 @@ function ScriptCmds.edit_script(data: {[string]: any}): {[string]: any}
 
 	local editCount = 0
 	local failedEdits = {}
-	for i, edit in ipairs(data.edits) do
+	for i, edit in data.edits do
 		if not edit.old_text or edit.old_text == "" then
 			table.insert(failedEdits, "Edit " .. i .. ": missing old_text")
 		elseif edit.new_text == nil then

@@ -29,7 +29,7 @@ function PropertyCmds.set_properties(data: {[string]: any}): {[string]: any}
 	if targetErr then return targetErr end
 
 	local properties = data.properties
-	if not properties or type(properties) ~= "table" or not next(properties) then
+	if not properties or typeof(properties) ~= "table" or not next(properties) then
 		return {success = false, message = "Missing or empty properties table"}
 	end
 
@@ -37,7 +37,7 @@ function PropertyCmds.set_properties(data: {[string]: any}): {[string]: any}
 	local set = {}
 	local failed = {}
 
-	for propName, propValue in pairs(properties) do
+	for propName, propValue in properties do
 		local ok, err = pcall(function()
 			((target :: Instance) :: any)[propName] = Utils.convertValue(propValue)
 		end)
@@ -92,13 +92,6 @@ function PropertyCmds.set_attribute(data: {[string]: any}): {[string]: any}
 	return {success = true, message = "Set attribute '" .. data.attribute .. "' on " .. (target :: Instance).Name}
 end
 
-function PropertyCmds.get_attributes(data: {[string]: any}): {[string]: any}
-	local target, err = Utils.requireTarget(data.path)
-	if err then return err end
-
-	return {success = true, attributes = (target :: Instance):GetAttributes(), tags = (target :: Instance):GetTags()}
-end
-
 function PropertyCmds.undo(data: {[string]: any}): {[string]: any}
 	local count = data.count or 1
 	local undone = 0
@@ -114,7 +107,7 @@ function PropertyCmds.undo(data: {[string]: any}): {[string]: any}
 	if undone == 0 then
 		return {success = false, message = "Nothing to undo"}
 	end
-	return {success = true, message = "Undid " .. undone .. " action(s)"}
+	return {success = true, message = "Undid " .. undone .. " action(s)", data = {undone = undone}}
 end
 
 return PropertyCmds

@@ -96,7 +96,10 @@ local function setupWebSocket(currentWs: WebStreamClient, authMessage: {[string]
 			return
 		end
 
-		local response = handleCommand(data)
+		local ok, response = pcall(handleCommand, data)
+		if not ok then
+			response = {success = false, message = "Error: " .. tostring(response)}
+		end
 		if data.requestId then
 			response.requestId = data.requestId
 		end
@@ -121,7 +124,9 @@ local function setupWebSocket(currentWs: WebStreamClient, authMessage: {[string]
 	currentWs.Closed:Connect(handleConnectionLost)
 
 	currentWs.Error:Connect(function(statusCode: number, errorMessage: string)
-		warn("[Metain] WebSocket error:", statusCode, errorMessage)
+		if not errorMessage:find("err: 0") then
+			warn("[Metain] WebSocket error:", statusCode, errorMessage)
+		end
 		handleConnectionLost()
 	end)
 end

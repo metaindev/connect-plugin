@@ -27,7 +27,7 @@ function InstanceCmds.create_instance(data: {[string]: any}): {[string]: any}
 	Utils.withRecording("Create Instance", function()
 		instance.Name = data.name or className
 		if data.properties then
-			for propName, propValue in pairs(data.properties) do
+			for propName, propValue in data.properties do
 				pcall(function()
 					(instance :: any)[propName] = Utils.convertValue(propValue)
 				end)
@@ -119,6 +119,49 @@ function InstanceCmds.clone(data: {[string]: any}): {[string]: any}
 
 	Selection:Set({cloned})
 	return {success = true, message = "Cloned: " .. cloned:GetFullName()}
+end
+
+function InstanceCmds.insert_asset(data: {[string]: any}): {[string]: any}
+	local assetId = tonumber(data.assetId)
+	if not assetId then
+		return {success = false, message = "Missing or invalid assetId"}
+	end
+
+	local parent = workspace
+	if data.parent then
+		parent = Utils.findByPath(data.parent) or Utils.locationMap[data.parent]
+		if not parent then
+			return {success = false, message = "Invalid parent: " .. tostring(data.parent)}
+		end
+	end
+
+	local insertedInstance
+	Utils.withRecording("Insert Asset", function()
+		local ok, container = pcall(function()
+			return game:GetService("InsertService"):LoadAsset(assetId)
+		end)
+		if not ok then
+			error("Could not load asset: " .. tostring(container))
+		end
+
+		local children = container:GetChildren()
+		if #children == 0 then
+			container:Destroy()
+			error("Asset is empty")
+		end
+
+		if #children == 1 then
+			children[1].Parent = parent
+			insertedInstance = children[1]
+			container:Destroy()
+		else
+			container.Parent = parent
+			insertedInstance = container
+		end
+	end)
+
+	Selection:Set({insertedInstance})
+	return {success = true, message = "Inserted: " .. insertedInstance:GetFullName(), data = {name = insertedInstance.Name}}
 end
 
 return InstanceCmds

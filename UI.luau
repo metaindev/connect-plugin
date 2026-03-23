@@ -46,7 +46,7 @@ function UI.init(pluginInstance)
 	UI.toggleButton = toolbar:CreateButton(
 		"Metain",
 		"Open Metain panel",
-		"rbxassetid://106574277669668"
+		"rbxassetid://93855725349422"
 	)
 
 	local widgetInfo = DockWidgetPluginGuiInfo.new(
@@ -174,7 +174,10 @@ function UI.init(pluginInstance)
 	end
 
 	applyTheme()
-	settings().Studio.ThemeChanged:Connect(applyTheme)
+	settings().Studio.ThemeChanged:Connect(function()
+		applyTheme()
+		UI.updateUI()
+	end)
 
 	UI.updateUI()
 end

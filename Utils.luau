@@ -21,7 +21,7 @@ function Utils.findByPath(path: string): Instance?
 	local segments = path:split(".")
 	local current: Instance? = nil
 
-	for i, segment in ipairs(segments) do
+	for i, segment in segments do
 		if i == 1 then
 			current = Utils.locationMap[segment] or game:FindFirstChild(segment)
 		else
@@ -83,13 +83,13 @@ function Utils.convertValue(value: any): any
 		return Rect.new(value.MinX, value.MinY, value.MaxX, value.MaxY)
 	elseif t == "NumberSequence" then
 		local keypoints = {}
-		for _, kp in ipairs(value.Keypoints) do
+		for _, kp in value.Keypoints do
 			table.insert(keypoints, NumberSequenceKeypoint.new(kp.Time, kp.Value, kp.Envelope or 0))
 		end
 		return NumberSequence.new(keypoints)
 	elseif t == "ColorSequence" then
 		local keypoints = {}
-		for _, kp in ipairs(value.Keypoints) do
+		for _, kp in value.Keypoints do
 			local color = Color3.fromRGB(kp.Color.R, kp.Color.G, kp.Color.B)
 			table.insert(keypoints, ColorSequenceKeypoint.new(kp.Time, color))
 		end
@@ -115,7 +115,7 @@ function Utils.createFromSpec(spec: {[string]: any}): Instance
 
 	local instance = Instance.new(className)
 
-	for propName, propValue in pairs(spec) do
+	for propName, propValue in spec do
 		if propName == "ClassName" or propName == "Children" or propName == "Parent" then
 			continue
 		end
@@ -126,7 +126,7 @@ function Utils.createFromSpec(spec: {[string]: any}): Instance
 	end
 
 	if spec.Children then
-		for _, childSpec in ipairs(spec.Children) do
+		for _, childSpec in spec.Children do
 			local child = Utils.createFromSpec(childSpec)
 			child.Parent = instance
 		end
@@ -153,9 +153,14 @@ end
 
 function Utils.withRecording(label: string, fn: () -> ())
 	local recording = ChangeHistoryService:TryBeginRecording("Metain: " .. label)
-	fn()
+	local ok, err = pcall(fn)
 	if recording then
-		ChangeHistoryService:FinishRecording(recording, Enum.FinishRecordingOperation.Commit)
+		ChangeHistoryService:FinishRecording(recording,
+			ok and Enum.FinishRecordingOperation.Commit
+				or Enum.FinishRecordingOperation.Cancel)
+	end
+	if not ok then
+		error(err)
 	end
 end
 

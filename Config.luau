@@ -1,6 +1,6 @@
 local Config = {}
 
-Config.PLUGIN_VERSION = "1.0.2"
+Config.PLUGIN_VERSION = "1.0.4"
 Config.SERVER_URL = "wss://turnstile.metain.dev"
 Config.MAX_RECONNECT_ATTEMPTS = 5
 
