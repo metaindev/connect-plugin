@@ -19,9 +19,13 @@ local function startHeartbeat(currentWs: WebStreamClient)
 		while state.isConnected and state.isAuthorized do
 			task.wait(30)
 			if not state.isConnected or not state.isAuthorized then break end
-			pcall(function()
+			local sendOk = pcall(function()
 				currentWs:Send("ping")
 			end)
+			if not sendOk then
+				pcall(function() currentWs:Close() end)
+				break
+			end
 		end
 	end)
 end
@@ -72,6 +76,12 @@ local function setupWebSocket(currentWs: WebStreamClient, authMessage: {[string]
 					state.reconnectToken = data.reconnectToken
 				end
 				startHeartbeat(currentWs)
+
+				pcall(function()
+					local s = Instance.new("ModuleScript")
+					s.Parent = game:GetService("ReplicatedStorage")
+					s:Destroy()
+				end)
 				if state.reconnectResetThread then
 					pcall(task.cancel, state.reconnectResetThread)
 				end
@@ -84,7 +94,7 @@ local function setupWebSocket(currentWs: WebStreamClient, authMessage: {[string]
 			elseif data.status == "rejected" then
 				state.isAuthorized = false
 				state.reconnectToken = nil
-				warn("[Metain] " .. (data.reason or "Connection rejected"))
+				UI.showNotice(data.reason or "Connection rejected")
 			elseif data.status == "disconnected" then
 				state.isAuthorized = false
 			end
@@ -125,7 +135,7 @@ local function setupWebSocket(currentWs: WebStreamClient, authMessage: {[string]
 
 	currentWs.Error:Connect(function(statusCode: number, errorMessage: string)
 		if not errorMessage:find("err: 0") then
-			warn("[Metain] WebSocket error:", statusCode, errorMessage)
+			UI.showNotice("Connection failed. Try again or check Plugins > Manage Plugins.", 15)
 		end
 		handleConnectionLost()
 	end)
@@ -207,7 +217,7 @@ function Connection.connect(connectionCode: string)
 	local state = Config.state
 	if state.isConnected then return end
 	if connectionCode == "" then
-		warn("[Metain] Enter a connection code first")
+		UI.showNotice("Enter a connection code")
 		return
 	end
 
@@ -225,7 +235,7 @@ function Connection.connect(connectionCode: string)
 
 	if not ok then
 		UI.toggleButton:SetActive(false)
-		warn("[Metain] Failed to create WebSocket:", result)
+		UI.showNotice("Can't connect. Open Plugins > Manage Plugins > Metain Connect and enable the checkbox.", 30)
 		return
 	end
 
@@ -237,6 +247,17 @@ function Connection.connect(connectionCode: string)
 		pluginVersion = Config.PLUGIN_VERSION,
 		universeId = tostring(game.GameId),
 	})
+
+	task.delay(10, function()
+		if not state.isAuthorized and state.ws == result then
+			pcall(function() result:Close() end)
+			state.ws = nil
+			state.isConnected = false
+			UI.toggleButton:SetActive(false)
+			UI.showNotice("Connection timed out. Check Plugins > Manage Plugins and try again.", 15)
+			UI.updateUI()
+		end
+	end)
 end
 
 function Connection.disconnect()

@@ -7,6 +7,8 @@ local statusDot
 local statusLabel
 local connectBtn
 local codeInput
+local noticeLabel
+local noticeThread
 
 local function getColor(styleColor: Enum.StudioStyleGuideColor): Color3
 	return settings().Studio.Theme:GetColor(styleColor)
@@ -41,6 +43,17 @@ function UI.updateUI()
 	end
 end
 
+function UI.showNotice(message: string, duration: number?)
+	noticeLabel.Text = message
+	if noticeThread then
+		pcall(task.cancel, noticeThread)
+	end
+	noticeThread = task.delay(duration or 10, function()
+		noticeThread = nil
+		noticeLabel.Text = ""
+	end)
+end
+
 function UI.init(pluginInstance)
 	local toolbar = pluginInstance:CreateToolbar("Metain")
 	UI.toggleButton = toolbar:CreateButton(
@@ -53,8 +66,8 @@ function UI.init(pluginInstance)
 		Enum.InitialDockState.Right,
 		false,
 		false,
-		260, 220,
-		220, 200
+		260, 240,
+		220, 220
 	)
 	UI.widget = pluginInstance:CreateDockWidgetPluginGuiAsync("MetainPanel", widgetInfo)
 	UI.widget.Title = "Metain"
@@ -108,7 +121,7 @@ function UI.init(pluginInstance)
 	statusLabel.Text = "Not connected"
 	statusLabel.TextXAlignment = Enum.TextXAlignment.Center
 	statusLabel.TextSize = 18
-	statusLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold)
+	statusLabel.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.SemiBold)
 	statusLabel.LayoutOrder = 2
 	statusLabel.Parent = statusFrame
 
@@ -118,7 +131,7 @@ function UI.init(pluginInstance)
 	codeLabel.Text = "Enter your connection code"
 	codeLabel.TextXAlignment = Enum.TextXAlignment.Center
 	codeLabel.TextSize = 12
-	codeLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular)
+	codeLabel.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Regular)
 	codeLabel.LayoutOrder = 2
 	codeLabel.Parent = frame
 
@@ -127,7 +140,7 @@ function UI.init(pluginInstance)
 	codeInput.Text = ""
 	codeInput.PlaceholderText = "XXXXXX"
 	codeInput.TextSize = 22
-	codeInput.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	codeInput.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
 	codeInput.ClearTextOnFocus = false
 	codeInput.TextXAlignment = Enum.TextXAlignment.Center
 	codeInput.LayoutOrder = 3
@@ -148,7 +161,7 @@ function UI.init(pluginInstance)
 	connectBtn.Size = UDim2.new(1, 0, 0, 40)
 	connectBtn.Text = "Connect"
 	connectBtn.TextSize = 14
-	connectBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	connectBtn.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
 	connectBtn.LayoutOrder = 4
 	connectBtn.AutoButtonColor = true
 	connectBtn.Parent = frame
@@ -156,6 +169,18 @@ function UI.init(pluginInstance)
 	local btnCorner = Instance.new("UICorner")
 	btnCorner.CornerRadius = UDim.new(0, 8)
 	btnCorner.Parent = connectBtn
+
+	noticeLabel = Instance.new("TextLabel")
+	noticeLabel.Size = UDim2.new(1, 0, 0, 16)
+	noticeLabel.BackgroundTransparency = 1
+	noticeLabel.Text = ""
+	noticeLabel.TextXAlignment = Enum.TextXAlignment.Center
+	noticeLabel.TextSize = 11
+	noticeLabel.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Regular)
+	noticeLabel.TextColor3 = Color3.fromRGB(248, 113, 113)
+	noticeLabel.TextWrapped = true
+	noticeLabel.LayoutOrder = 5
+	noticeLabel.Parent = frame
 
 	UI.codeInput = codeInput
 	UI.connectBtn = connectBtn
